@@ -1,0 +1,81 @@
+BO_DEM|10|8|12
+KHOA|5
+K001|Cap cuu
+K002|Noi khoa
+K003|Nhi khoa
+K004|San phu khoa
+K005|Khoa Da lieu
+BAC_SI|7
+BS000001|Nguyen Van An|Cap cuu|K001
+BS000002|Tran Thi Bich|Noi khoa|K002
+BS000003|Le Van Cuong|Nhi khoa|K003
+BS000004|Pham Thi Dung|San phu khoa|K004
+BS000005|Hoang Minh Duc|Cap cuu|K001
+BS000006|Vu Thi Em|Noi khoa|K002
+BS000007|Nguyen Van Nam|Khoa Da lieu|K005
+BENH_NHAN|9
+BN001|Nguyen Thi Lan|1990-03-15|0|001234567890|0912345678|lan.nguyen@gmail.com|12 Tran Hung Dao Ha Noi|A+|0|Khong
+DI_UNG|1
+Penicillin
+BENH_NEN|0
+LUOT_KHAM|2
+LK000001|2026-05-10|Viem hong cap|Amoxicillin 500mg 3 vien/ngay x 7 ngay|BS000002|K002
+LK000002|2026-06-01|Cao huyet ap|Amlodipine 5mg 1 vien/ngay|BS000002|K002
+BN002|Le Van Binh|1945-07-20|1|002345678901|0923456789|binh.le@yahoo.com|45 Nguyen Trai Ha Noi|B+|1|Nguoi cao tuoi
+DI_UNG|2
+Sulfonamide
+Aspirin
+BENH_NEN|2
+Dai thao duong type 2
+Tang huyet ap
+LUOT_KHAM|1
+LK000001|2026-05-20|Kiem soat duong huyet|Metformin 500mg 2 vien/ngay|BS000002|K002
+BN003|Tran Thi Cam|1985-11-05|0|003456789012|0934567890|cam.tran@gmail.com|78 Le Loi TP HCM|O+|0|Khong
+DI_UNG|0
+BENH_NEN|1
+Hen suyen
+LUOT_KHAM|0
+BN004|Pham Van Dung|1978-02-28|1|004567890123|0945678901|dung.pham@gmail.com|23 Hai Ba Trung Da Nang|AB-|0|Khong
+DI_UNG|0
+BENH_NEN|0
+LUOT_KHAM|3
+LK000001|2026-04-10|Viem ruot thua|Phau thuat cat ruot thua|BS000001|K001
+LK000002|2026-04-15|Tai kham sau phau thuat|Thay bang vet thuong|BS000001|K001
+LK000003|2026-05-01|Ket qua on dinh|Khong can them dieu tri|BS000001|K001
+BN005|Hoang Thi Mai|1960-09-12|0|005678901234|0956789012|mai.hoang@gmail.com|90 Pham Van Dong Hue|A-|1|Thuong binh hang 2
+DI_UNG|1
+Codeine
+BENH_NEN|3
+Tang huyet ap
+Suy tim do
+Benh than man tinh
+LUOT_KHAM|0
+BN006|Vu Minh Khoa|2015-04-22|1|006789012345|0967890123|khoa.parents@gmail.com|56 Hoang Dieu Can Tho|B-|0|Khong
+DI_UNG|0
+BENH_NEN|1
+Di ung seamen
+LUOT_KHAM|1
+LK000001|2026-05-15|Sot xuat huyet dengue nhe|Nghi ngoi bu dich truyen|BS000003|K003
+BN007|Do Thi Ngoc|1995-08-30|0|007890123456|0978901234|ngoc.do@outlook.com|34 Tran Phu Nha Trang|O-|0|Khong
+DI_UNG|0
+BENH_NEN|0
+LUOT_KHAM|0
+BN008|Bui Van Phuc|1970-12-01|1|008901234567|0989012345|phuc.bui@gmail.com|11 Bach Dang Quang Ninh|AB+|1|Nguoi khot tat hang 3
+DI_UNG|1
+Ibuprofen
+BENH_NEN|2
+Viem khop dang thap
+Loang xuong
+LUOT_KHAM|0
+BN009|Nguyen Thi Quynh|2000-06-18|0|009012345678|0990123456|quynh.nt@gmail.com|67 Le Duan Ha Noi|A+|0|Khong
+DI_UNG|0
+BENH_NEN|0
+LUOT_KHAM|0
+HANG_DOI|7
+K001|BN005|1|7|1749250000|0|K001|1|0
+K001|BN004|2|5|1749250100|0|K001|2|1
+K001|BN001|3|4|1749250200|0|K001|3|0
+K002|BN002|2|6|1749250050|0|K002|4|0
+K002|BN008|3|5|1749250150|0|K002|5|0
+K003|BN006|4|3|1749250300|0|K003|6|0
+K003|BN009|5|2|1749250400|0|K003|7|0
