@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 #include <stddef.h>
+#include <ctype.h>
 #ifdef _WIN32
 #include <direct.h>
 #define GETCWD _getcwd
@@ -31,8 +32,6 @@
 #define MEDICAL_PRIORITY_HIGHEST 1
 #define MEDICAL_PRIORITY_LOWEST 5
 #define SOCIAL_PRIORITY_BONUS 1
-#define LONG_WAIT_MINUTES 60
-#define LONG_WAIT_BONUS 1
 #define MAX_ABSENT_COUNT 3
 
 struct MedicalVisit {
@@ -103,7 +102,9 @@ void add_text_to_array(struct DynamicArray* arr, const char* text);
 void system_state_init(struct MedicalSystemState* system);
 void system_state_free(struct MedicalSystemState* system);
 struct Department* find_department(struct MedicalSystemState* system, const char* dept_id);
+struct Department* find_department_by_name(struct MedicalSystemState* system, const char* dept_name);
 struct Patient* find_patient(struct MedicalSystemState* system, const char* patient_id);
+struct Patient* find_patient_by_citizen_id(struct MedicalSystemState* system, const char* citizen_id);
 struct Doctor* find_doctor_in_dept(struct MedicalSystemState* system, const char* dept_id);
 struct Department* create_department(const char* dept_id, const char* dept_name);
 struct Doctor* create_doctor(struct MedicalSystemState* system, const char* name, const char* specialization, const char* dept_id);

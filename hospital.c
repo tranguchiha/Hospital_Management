@@ -1,5 +1,7 @@
 #include "hospital.h"
 
+static struct PatientInQueue* find_active_queue_entry(struct Department* dept, const char* patient_id);
+
 void rebuild_heap(struct MaxHeap* heap){
     int i;
     for (i = heap->size / 2 - 1; i >= 0; i--){
@@ -12,8 +14,8 @@ void rebuild_heap(struct MaxHeap* heap){
 
 
 int calculate_queue_priority_score(struct PatientInQueue* entry, long current_time){
-    long waited_seconds;
     int score;
+    (void)current_time;
     if (entry == NULL){
         return 0;
     }
@@ -23,19 +25,14 @@ int calculate_queue_priority_score(struct PatientInQueue* entry, long current_ti
        1 = nguy cap nhat, 5 = nhe nhat.
        Hang doi van dung heap cuc dai, nen diem uu tien duoc dao lai:
        muc 1 duoc diem nen cao nhat, muc 5 duoc diem nen thap nhat.
+
+       Da bo co che cong diem sau 60 phut cho.
+       Diem uu tien hien chi phu thuoc vao muc do y te va doi tuong uu tien xa hoi.
     */
     score = (MEDICAL_PRIORITY_LOWEST + 1) - entry->medical_priority;
 
     if (entry->root_record != NULL && entry->root_record->is_priority_object){
         score += SOCIAL_PRIORITY_BONUS;
-    }
-
-    waited_seconds = current_time - entry->registration_time;
-    if (waited_seconds < 0){
-        waited_seconds = 0;
-    }
-    if (waited_seconds >= (long)LONG_WAIT_MINUTES * 60L){
-        score += LONG_WAIT_BONUS;
     }
 
     return score;
@@ -71,6 +68,10 @@ void register_for_examination(struct MedicalSystemState* system, struct Patient*
     }
     if (patient_ptr == NULL){
         printf("Khong tim thay benh nhan.\n");
+        return;
+    }
+    if (find_active_queue_entry(dept, patient_ptr->patient_id) != NULL){
+        printf("Benh nhan %s da co phien dang ky dang cho tai khoa %s. Khong the dang ky trung.\n", patient_ptr->patient_id, dept_id);
         return;
     }
     medical_priority = assign_medical_priority(spo2, pulse, bp, temp);
@@ -195,6 +196,49 @@ void safe_copy(char* dest, size_t dest_size, const char* src){
         i++;
     }
     dest[i] = '\0';
+}
+
+static void normalize_for_compare(const char* src, char* dest, size_t dest_size){
+    size_t i;
+    size_t j;
+    int previous_space;
+
+    if (dest == NULL || dest_size == 0){
+        return;
+    }
+    if (src == NULL){
+        src = "";
+    }
+
+    i = 0;
+    j = 0;
+    previous_space = TRUE;
+    while (src[i] != '\0' && j + 1 < dest_size){
+        unsigned char ch = (unsigned char)src[i];
+        if (isspace(ch)){
+            if (!previous_space){
+                dest[j++] = ' ';
+                previous_space = TRUE;
+            }
+        } else {
+            dest[j++] = (char)tolower(ch);
+            previous_space = FALSE;
+        }
+        i++;
+    }
+    if (j > 0 && dest[j - 1] == ' '){
+        j--;
+    }
+    dest[j] = '\0';
+}
+
+
+static int text_equal_normalized(const char* a, const char* b){
+    char na[TEXT_LARGE];
+    char nb[TEXT_LARGE];
+    normalize_for_compare(a, na, sizeof(na));
+    normalize_for_compare(b, nb, sizeof(nb));
+    return strcmp(na, nb) == 0;
 }
 
 
@@ -348,6 +392,22 @@ struct Department* find_department(struct MedicalSystemState* system, const char
 }
 
 
+struct Department* find_department_by_name(struct MedicalSystemState* system, const char* dept_name){
+    int i;
+    struct Department* d;
+    if (dept_name == NULL || strlen(dept_name) == 0){
+        return NULL;
+    }
+    for (i = 0; i < system->dept_records_array.size; i++){
+        d = (struct Department*)system->dept_records_array.elements[i];
+        if (text_equal_normalized(d->dept_name, dept_name)){
+            return d;
+        }
+    }
+    return NULL;
+}
+
+
 struct Patient* find_patient(struct MedicalSystemState* system, const char* patient_id){
     int i;
     struct Patient* p;
@@ -359,6 +419,38 @@ struct Patient* find_patient(struct MedicalSystemState* system, const char* pati
         p = (struct Patient*)system->patient_records_array.elements[i];
         if (strcmp(p->patient_id, patient_id) == 0 || strcmp(p->patient_id, normalized_id) == 0){
             return p;
+        }
+    }
+    return NULL;
+}
+
+
+struct Patient* find_patient_by_citizen_id(struct MedicalSystemState* system, const char* citizen_id){
+    int i;
+    struct Patient* p;
+    if (citizen_id == NULL || strlen(citizen_id) == 0){
+        return NULL;
+    }
+    for (i = 0; i < system->patient_records_array.size; i++){
+        p = (struct Patient*)system->patient_records_array.elements[i];
+        if (strcmp(p->citizen_id, citizen_id) == 0){
+            return p;
+        }
+    }
+    return NULL;
+}
+
+
+static struct PatientInQueue* find_active_queue_entry(struct Department* dept, const char* patient_id){
+    int i;
+    struct PatientInQueue* e;
+    if (dept == NULL || patient_id == NULL){
+        return NULL;
+    }
+    for (i = 0; i < dept->wait_queue.size; i++){
+        e = dept->wait_queue.heap_array[i];
+        if (e != NULL && e->root_record != NULL && e->queue_status == 0 && strcmp(e->root_record->patient_id, patient_id) == 0){
+            return e;
         }
     }
     return NULL;
@@ -411,6 +503,10 @@ struct Doctor* create_doctor(struct MedicalSystemState* system, const char* name
 
 struct Patient* create_patient(struct MedicalSystemState* system, const char* name, const char* birth, int gender, const char* citizen_id, const char* phone, const char* email, const char* address, const char* blood, int priority_object, const char* priority_type) {
     struct Patient* p;
+    if (find_patient_by_citizen_id(system, citizen_id) != NULL) {
+        printf("CCCD nay da ton tai trong ho so benh nhan. Khong the them benh nhan moi trung CCCD.\n");
+        return NULL;
+    }
     p = (struct Patient*)malloc(sizeof(struct Patient));
     if (p == NULL) {
         printf("Loi cap phat vung nho.\n");
@@ -516,6 +612,10 @@ void menu_add_department(struct MedicalSystemState* system) {
         printf("Ma khoa nay da ton tai.\n");
         return;
     }
+    if (find_department_by_name(system, name) != NULL) {
+        printf("Ten khoa nay da ton tai. Vui long dung ten khac de tranh trung khoa.\n");
+        return;
+    }
     dynamic_array_append(&system->dept_records_array, create_department(id, name));
     printf("Them khoa thanh cong.\n");
 }
@@ -560,6 +660,14 @@ void menu_add_patient(struct MedicalSystemState* system) {
     read_line("Email: ", email, sizeof(email));
     read_line("Dia chi: ", address, sizeof(address));
     read_line("Nhom mau: ", blood, sizeof(blood));
+    if (strlen(name) == 0 || strlen(citizen) == 0) {
+        printf("Ten benh nhan va CCCD khong duoc de trong.\n");
+        return;
+    }
+    if (find_patient_by_citizen_id(system, citizen) != NULL) {
+        printf("CCCD nay da ton tai trong ho so benh nhan. Khong the them benh nhan moi trung CCCD.\n");
+        return;
+    }
     priority = read_int("Thuoc doi tuong uu tien xa hoi? 0=Khong, 1=Co: ");
     if (priority) {
         read_line("Loai doi tuong uu tien: ", priority_type, sizeof(priority_type));
@@ -567,6 +675,9 @@ void menu_add_patient(struct MedicalSystemState* system) {
         safe_copy(priority_type, sizeof(priority_type), "Trong");
     }
     p = create_patient(system, name, birth, gender, citizen, phone, email, address, blood, priority, priority_type);
+    if (p == NULL) {
+        return;
+    }
     read_line("Di ung, de trong neu khong co: ", allergy, sizeof(allergy));
     add_text_to_array(&p->allergies, allergy);
     read_line("Benh nen, de trong neu khong co: ", disease, sizeof(disease));
@@ -967,7 +1078,7 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                 if (fgets(line, sizeof(line), f) == NULL) break;
                 trim_newline(line);
                 split_fields(line, fields, 20);
-                if (strlen(fields[0]) > 0 && find_department(system, fields[0]) == NULL) {
+                if (strlen(fields[0]) > 0 && find_department(system, fields[0]) == NULL && find_department_by_name(system, fields[1]) == NULL) {
                     dynamic_array_append(&system->dept_records_array, create_department(fields[0], fields[1]));
                 }
             }
@@ -1004,7 +1115,11 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                 if (count < 11 || strlen(fields[0]) == 0) {
                     continue;
                 }
-                patient = create_patient_from_file(system, fields);
+                if (find_patient(system, fields[0]) != NULL || find_patient_by_citizen_id(system, fields[4]) != NULL) {
+                    patient = NULL;
+                } else {
+                    patient = create_patient_from_file(system, fields);
+                }
 
                 if (fgets(line, sizeof(line), f) == NULL) break;
                 trim_newline(line);
@@ -1014,7 +1129,7 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                     for (j = 0; j < count; j++) {
                         if (fgets(line, sizeof(line), f) == NULL) break;
                         trim_newline(line);
-                        add_text_to_array(&patient->allergies, line);
+                        if (patient != NULL) add_text_to_array(&patient->allergies, line);
                     }
                 }
 
@@ -1026,7 +1141,7 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                     for (j = 0; j < count; j++) {
                         if (fgets(line, sizeof(line), f) == NULL) break;
                         trim_newline(line);
-                        add_text_to_array(&patient->comorbidities, line);
+                        if (patient != NULL) add_text_to_array(&patient->comorbidities, line);
                     }
                 }
 
@@ -1039,7 +1154,7 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                         if (fgets(line, sizeof(line), f) == NULL) break;
                         trim_newline(line);
                         split_fields(line, fields, 20);
-                        add_visit_from_file(patient, fields);
+                        if (patient != NULL) add_visit_from_file(patient, fields);
                     }
                 }
             }
@@ -1055,7 +1170,7 @@ void load_data_from_file(struct MedicalSystemState* system, const char* filename
                 dept = find_department(system, fields[0]);
                 format_patient_id_short(fields[1], normalized_patient_id, sizeof(normalized_patient_id));
                 patient = find_patient(system, normalized_patient_id);
-                if (dept == NULL || patient == NULL) {
+                if (dept == NULL || patient == NULL || find_active_queue_entry(dept, patient->patient_id) != NULL) {
                     continue;
                 }
                 entry = (struct PatientInQueue*)malloc(sizeof(struct PatientInQueue));
@@ -1191,13 +1306,17 @@ void save_data_to_file(struct MedicalSystemState* system, const char* filename) 
 
 
 void save_all_data_files(struct MedicalSystemState* system, const char* input_file, const char* output_file) {
-    if (input_file != NULL && input_file[0] != '\0') {
-        save_data_to_file(system, input_file);
-    }
+    (void)input_file;
+    /*
+       input.txt  : du lieu dau vao ban dau, giu nguyen.
+       output.txt : du lieu ket qua sau khi them khoa, bac si, benh nhan, dang ki kham...
+       Vi vay sau khi thao tac, hay xem output.txt de thay su thay doi.
+    */
     if (output_file != NULL && output_file[0] != '\0') {
         save_data_to_file(system, output_file);
     }
 }
+
 
 void clear_screen_simple(void) {
 #ifdef _WIN32
