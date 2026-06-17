@@ -294,7 +294,7 @@ void ui_print_priority_legend(void) {
            "SpO2<98%, mach bat thuong nhe, nhiet>=37.5");
     printf("| %-6s | %-20s | %-50.50s |\n", "Muc 5", "Binh thuong", "Cac truong hop con lai");
     ui_draw_line(UI_WIDTH);
-    printf("  (*) Benh nhan uu tien xa hoi va cho lau >= 60 phut duoc +1 diem.\n\n");
+    printf("  (*) Benh nhan thuoc doi tuong uu tien xa hoi duoc cong +1 diem.\n\n");
 }
 
 void ui_print_queue_header(const struct Department* dept) {
@@ -729,7 +729,10 @@ void ui_menu_add_patient(struct MedicalSystemState* system) {
 
     p = create_patient(system, name, birth, gender, citizen, phone, email,
                        address, blood, priority, priority_type);
-
+    if (p == NULL) {
+    ui_notify(MSG_ERROR, "Khong the tao ho so benh nhan. CCCD da ton tai.");
+    return;
+}
     printf("  Di ung (de trong neu khong co): ");
     read_line("", allergy, sizeof(allergy));
     if (strlen(allergy) > 0) add_text_to_array(&p->allergies, allergy);
