@@ -33,6 +33,7 @@
 #define MEDICAL_PRIORITY_LOWEST 5
 #define SOCIAL_PRIORITY_BONUS 1
 #define MAX_ABSENT_COUNT 3
+#define CITIZEN_ID_LENGTH 12
 
 struct MedicalVisit {
     char visit_id[15];
@@ -84,7 +85,7 @@ struct MedicalSystemState {
 
 int assign_medical_priority(double spo2, int pulse, int systolic_bp, double temperature);
 int calculate_queue_priority_score(struct PatientInQueue* entry, long current_time);
-void register_for_examination(struct MedicalSystemState* system, struct Patient* patient_ptr, const char* dept_id, double spo2, int pulse, int bp, double temp);
+int register_for_examination(struct MedicalSystemState* system, struct Patient* patient_ptr, const char* dept_id, double spo2, int pulse, int bp, double temp);
 void update_priority_for_long_waiters(struct Department* dept, long current_time);
 void handle_absent_patient(struct Department* dept, struct PatientInQueue* entry);
 void rebuild_heap(struct MaxHeap* heap);
@@ -92,6 +93,9 @@ int hoare_partition(void** arr, int low, int high);
 void quick_sort_patients(void** arr, int low, int high);
 
 void safe_copy(char* dest, size_t dest_size, const char* src);
+void trim_whitespace(char* s);
+int is_digits_only(const char* text);
+int validate_citizen_id(const char* citizen_id);
 char* duplicate_text(const char* s);
 void read_line(const char* prompt, char* buffer, int size);
 int read_int(const char* prompt);
@@ -105,6 +109,7 @@ struct Department* find_department(struct MedicalSystemState* system, const char
 struct Department* find_department_by_name(struct MedicalSystemState* system, const char* dept_name);
 struct Patient* find_patient(struct MedicalSystemState* system, const char* patient_id);
 struct Patient* find_patient_by_citizen_id(struct MedicalSystemState* system, const char* citizen_id);
+struct Doctor* find_doctor(struct MedicalSystemState* system, const char* doctor_id);
 struct Doctor* find_doctor_in_dept(struct MedicalSystemState* system, const char* dept_id);
 struct Department* create_department(const char* dept_id, const char* dept_name);
 struct Doctor* create_doctor(struct MedicalSystemState* system, const char* name, const char* specialization, const char* dept_id);
