@@ -72,10 +72,12 @@ void ui_print_system_summary(const struct MedicalSystemState* system);
 
 int ui_validate_date(const char* date_str);
 int ui_validate_phone(const char* phone);
+int ui_validate_citizen_id(const char* citizen_id);
 int ui_validate_email(const char* email);
 int ui_validate_blood_type(const char* blood);
 void ui_read_validated_date(const char* prompt, char* buffer, int size);
 void ui_read_validated_phone(const char* prompt, char* buffer, int size);
+void ui_read_validated_citizen_id(const char* prompt, char* buffer, int size);
 void ui_read_validated_email(const char* prompt, char* buffer, int size);
 void ui_read_validated_blood(const char* prompt, char* buffer, int size);
 int ui_read_int_range(const char* prompt, int min_val, int max_val);
