@@ -6,7 +6,7 @@ Trình biên dịch đã cài đặt GCC
 2. Cách thức chạy chương trình trên VsCode
 - Mở terminal và chạy dòng lệnh sau: `gcc --version`
 - Xác định đã cài đặt GCC, chạy tiếp lần lượt các dòng lệnh:
-`. cd "C:\Users\Admin\Downloads\Hospital_management-main (2)\Hospital_management-main"` và
+`. cd "C:\Users\Admin\Downloads\Hospital_Management-main (1)\Hospital_Management-main"` và
 `dir *.c`
 - Sau khi chạy `dir *.c` phải hiện ra các file mã nguồn .c (`dynamic_array.c` , `hospital.c` , `main.c` , `max_heap.c` , `ui.c`)
 - Tiếp tục chạy dòng lệch sau: `gcc main.c hospital.c ui.c dynamic_array.c max_heap.c -o hospital.exe`

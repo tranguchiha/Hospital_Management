@@ -1306,12 +1306,9 @@ void save_data_to_file(struct MedicalSystemState* system, const char* filename) 
 
 
 void save_all_data_files(struct MedicalSystemState* system, const char* input_file, const char* output_file) {
-    (void)input_file;
-    /*
-       input.txt  : du lieu dau vao ban dau, giu nguyen.
-       output.txt : du lieu ket qua sau khi them khoa, bac si, benh nhan, dang ki kham...
-       Vi vay sau khi thao tac, hay xem output.txt de thay su thay doi.
-    */
+    if (input_file != NULL && input_file[0] != '\0') {
+        save_data_to_file(system, input_file);
+    }
     if (output_file != NULL && output_file[0] != '\0') {
         save_data_to_file(system, output_file);
     }
