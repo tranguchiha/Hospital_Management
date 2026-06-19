@@ -484,6 +484,11 @@ int ui_validate_phone(const char* phone) {
     return 1;
 }
 
+
+int ui_validate_citizen_id(const char* citizen_id) {
+    return validate_citizen_id(citizen_id);
+}
+
 int ui_validate_email(const char* email) {
     const char* at;
     const char* dot;
@@ -518,6 +523,15 @@ void ui_read_validated_phone(const char* prompt, char* buffer, int size) {
         read_line(prompt, buffer, size);
         if (ui_validate_phone(buffer)) return;
         ui_notify(MSG_WARNING, "So dien thoai khong hop le. Phai co 10-11 chu so (vi du: 0912345678).");
+    }
+}
+
+
+void ui_read_validated_citizen_id(const char* prompt, char* buffer, int size) {
+    while (1) {
+        read_line(prompt, buffer, size);
+        if (ui_validate_citizen_id(buffer)) return;
+        ui_notify(MSG_WARNING, "CCCD khong hop le. CCCD phai gom dung 12 chu so, khong duoc nhap thua/thieu hoac ky tu khac.");
     }
 }
 
@@ -613,6 +627,10 @@ void ui_menu_add_department(struct MedicalSystemState* system) {
         ui_notify(MSG_ERROR, "Ten khoa khong duoc de trong.");
         return;
     }
+    if (find_department_by_name(system, name) != NULL) {
+        ui_notify(MSG_ERROR, "Ten khoa nay da ton tai. Khong the them khoa moi trung ten du khac ma khoa.");
+        return;
+    }
 
     dynamic_array_append(&system->dept_records_array, create_department(id, name));
 
@@ -663,6 +681,10 @@ void ui_menu_add_doctor(struct MedicalSystemState* system) {
     }
 
     d = create_doctor(system, name, spec, dept_id);
+    if (d == NULL) {
+        ui_notify(MSG_ERROR, "Khong the them bac si. Vui long kiem tra lai khoa phan cong.");
+        return;
+    }
     {
         char msg[512];
         sprintf(msg, "Them bac si thanh cong. Ma bac si: %s - Khoa: %s", d->doctor_id, dept->dept_name);
@@ -706,8 +728,11 @@ void ui_menu_add_patient(struct MedicalSystemState* system) {
         gender = 0;
     }
 
-    printf("  (*) Can cuoc cong dan: ");
-    read_line("", citizen, sizeof(citizen));
+    ui_read_validated_citizen_id("  (*) Can cuoc cong dan (dung 12 chu so): ", citizen, sizeof(citizen));
+    if (find_patient_by_citizen_id(system, citizen) != NULL) {
+        ui_notify(MSG_ERROR, "CCCD nay da ton tai trong ho so benh nhan. Khong the them benh nhan moi trung CCCD, du ten co khac nhau.");
+        return;
+    }
 
     ui_read_validated_phone("  (*) So dien thoai: ", phone, sizeof(phone));
     ui_read_validated_email("      Email (co the bo trong): ", email, sizeof(email));
@@ -730,9 +755,9 @@ void ui_menu_add_patient(struct MedicalSystemState* system) {
     p = create_patient(system, name, birth, gender, citizen, phone, email,
                        address, blood, priority, priority_type);
     if (p == NULL) {
-    ui_notify(MSG_ERROR, "Khong the tao ho so benh nhan. CCCD da ton tai.");
-    return;
-}
+        ui_notify(MSG_ERROR, "Khong the tao ho so benh nhan. Vui long kiem tra CCCD va thong tin bat buoc.");
+        return;
+    }
     printf("  Di ung (de trong neu khong co): ");
     read_line("", allergy, sizeof(allergy));
     if (strlen(allergy) > 0) add_text_to_array(&p->allergies, allergy);
@@ -795,9 +820,12 @@ void ui_menu_register_exam(struct MedicalSystemState* system) {
     bp    = ui_read_int_range   ("  Huyet ap tam thu (mmHg)", 50, 300);
     temp  = ui_read_double_range("  Nhiet do co the (do C)", 34.0, 45.0);
 
-    register_for_examination(system, p, dept_id, spo2, pulse, bp, temp);
-    ui_notify(MSG_SUCCESS, "Dang ky kham thanh cong. Benh nhan da duoc them vao hang doi.");
-    ui_print_queue_table(dept);
+    if (register_for_examination(system, p, dept_id, spo2, pulse, bp, temp)) {
+        ui_notify(MSG_SUCCESS, "Dang ky kham thanh cong. Benh nhan da duoc them vao hang doi.");
+        ui_print_queue_table(dept);
+    } else {
+        ui_notify(MSG_ERROR, "Dang ky kham khong thanh cong. Vui long kiem tra lai thong tin.");
+    }
 }
 
 void ui_menu_call_next(struct MedicalSystemState* system) {
